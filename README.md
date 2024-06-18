@@ -2,7 +2,7 @@
 
 ## Cinemantic Trajectories
 
-A `cinemagram` is a visualization of the frames of a video, grouping frames by visuo-semantic similarity. Here we show four different 2-D cinemagrams for the same video, as well as accompanying 3-D cinemagrams arranging the frames in order over time from bottom to top:
+A `cinemagram` is a visualization of the frames of a video, grouping frames by visuo-semantic similarity. Here are four different 2-D cinemagrams for the same video, as well as accompanying 3-D cinemagrams sorted vertically by time. 
 
 https://github.com/mcembalest/cinemagram/assets/70534565/ece8ae31-1647-4cb4-a4c2-cecda2e443ab
 
