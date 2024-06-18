@@ -2,13 +2,13 @@
 
 ## Cinemantic Trajectories
 
-A `cinemagram` is a visualization of the frames of a video, grouping frames by visuo-semantic similarity. Here are four different 2-D cinemagrams for the same video, as well as accompanying 3-D cinemagrams sorted vertically by time. 
+A `cinemagram` is a visualization of the frames of a video, grouping frames by visuo-semantic similarity. Here are four different 2-D cinemagrams for the same video (with their 3-D cinemagrams below, showing the same 2-D coordinates with time sorted vertically): 
 
 https://github.com/mcembalest/cinemagram/assets/70534565/ece8ae31-1647-4cb4-a4c2-cecda2e443ab
 
 ## How this was made
 
-I use the `nomic-embed-vision-1.5` encoder to embed each video frame as a 768-dimensional vector, and compare a few ways of viewing the vectors in 2D. Each 3-D plot uses time as the z-axis, moving from the bottom to the top.
+I use the `nomic-embed-vision-1.5` encoder to embed each video frame as a 768-dimensional vector, and compare a few ways of viewing the vectors in 2D. Each 3-D plot uses the same data in the horizontal plane as its corresponding 2-D plot, and introduces time as the z-axis, moving from the bottom to the top.
 
 `Nomic_Top2` refers to just selecting the first two dimensions of the 768 dimensions. This is mostly noise without the other dimensions, even though the model was trained [resizable Matryoshka representations](https://blog.nomic.ai/posts/nomic-embed-matryoshka), since 2 dimensions is too much of a reduction (their website mentions 64 as the lowest useful number of dimensions).
 
