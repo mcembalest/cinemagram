@@ -15,6 +15,17 @@ import umap
 import torch
 from transformers import AutoModel, AutoImageProcessor
 
+def euclidean_to_hyperbolic(coords):
+    results = []
+    for (x, y) in coords:
+        r = np.sqrt(x**2 + y**2)
+        theta = np.arctan2(y, x)
+        r_prime = np.arctanh(min(r, 0.999))  # Limit r to avoid infinity
+        x_prime = r_prime * np.cos(theta)
+        y_prime = r_prime * np.sin(theta)
+        results.append((x_prime, y_prime))
+    return np.array(results)
+
 app = dash.Dash(__name__)
 
 nomic_model = AutoModel.from_pretrained("nomic-ai/nomic-embed-vision-v1.5", trust_remote_code=True)
@@ -36,20 +47,20 @@ else:
     np.save(f"{source_dir}/gram.npy", gram)
 
 print("PCA, tSNE, and UMAP...")
-reduc_titles = ["Nomic_Top2", "Nomic_PCA", "Nomic_t-SNE", "Nomic_UMAP"]
-colors = ['red', 'blue', 'green', 'purple']
+reduc_titles = ["Nomic_PCA", "Nomic_t-SNE", "Nomic_UMAP"]
+colors = ['blue', 'green', 'purple']
 gram_pca = PCA(n_components=2).fit_transform(gram)
 gram_tsne = TSNE(n_components=2, learning_rate='auto', init='random', perplexity=3).fit_transform(gram)
 gram_umap = umap.UMAP().fit_transform(gram)
-grams = [gram, gram_pca, gram_tsne, gram_umap]
+grams = [gram_pca, gram_tsne, gram_umap]
 
 print("plotting...")
 fig = make_subplots(
     rows=3, 
-    cols=4, 
-    column_widths=[0.25, 0.25, 0.25, 0.25], 
+    cols=3, 
+    column_widths=[0.25, 0.25, 0.25], 
     row_heights = [0.1, 0.2, 0.6],
-    specs=[[{"colspan": 4}, None, None, None], [{}]*4, [{'type': 'scene'}]*4],
+    specs=[[{"colspan": 3}, None, None], [{}]*3, [{'type': 'scene'}]*3],
     subplot_titles=["Film Time-Sorted"] + reduc_titles,
     horizontal_spacing=0.02,
     vertical_spacing=0.05 
@@ -60,7 +71,7 @@ fig.add_trace(
         x=frame_indices, 
         y=np.zeros(len(frame_indices)), 
         mode='markers', 
-        marker=dict(size=5), 
+        marker=dict(size=5, color='red'), 
         name="Film Time-Sorted",
         customdata=frame_indices,
         hoverinfo='text', 
@@ -71,6 +82,7 @@ fig.add_trace(
 scaler = MinMaxScaler()
 for i, (data_og, name, color) in enumerate(zip(grams, reduc_titles, colors)):
     data = scaler.fit_transform(data_og)
+    # data = euclidean_to_hyperbolic(data)
     
     fig.add_trace(go.Scatter(
         x=data[:, 0], 
@@ -95,16 +107,15 @@ for i, (data_og, name, color) in enumerate(zip(grams, reduc_titles, colors)):
         text=[f'Frame {idx}' for idx in frame_indices]
     ), row=3, col=i+1)
 
-start_angles = [{"eye" : {"x":0.5,"y":2.5,"z":0.5}}]*4
+start_angles = [{"eye" : {"x":0.6,"y":1.3,"z":0.6}}]*4
 
 fig.update_layout(
-    width=1250, 
-    height=1000, 
+    width=1350, 
+    height=750, 
     showlegend=False,
     scene_camera = start_angles[0],
     scene2_camera = start_angles[0],
     scene3_camera = start_angles[0],
-    scene4_camera = start_angles[0],
     margin=dict(l=10, r=10, t=50, b=10)
 )
 
@@ -131,7 +142,7 @@ def update_marker_size(hoverData, fig):
     return fig
 
 @app.callback(
-    Output('image-display', 'src'),
+    Output('image-display', 'src'), 
     [Input('main-graph', 'hoverData')]
 )
 def display_image(hoverData):
@@ -144,9 +155,15 @@ def display_image(hoverData):
 
 app.layout = html.Div([
     html.Div([
+        html.Div([
+            dcc.Input(id='text-box', type='text', placeholder="Enter search term to browse cinemagram", style={'height': '100px', 'width': '300px'}),
+            html.Button('Search', id='search-button')
+        ], style={'display': 'flex', 'flex-direction': 'row'}),
         html.Img(id='image-display', style={'height': '300px', 'width': '400px'})
-    ], style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}),
-    dcc.Graph(id='main-graph', figure=fig)
+    ], style={'display': 'flex', 'flex-direction': 'column', 'justify-content': 'center', 'align-items': 'center'}),
+    html.Div([
+        dcc.Graph(id='main-graph', figure=fig)
+    ])
 ], style={'display': 'flex', 'flex-direction': 'row'})
 print("ready")
 if __name__ == '__main__':

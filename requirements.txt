@@ -1,0 +1,10 @@
+dash
+einops
+numpy
+pandas
+pillow
+plotly
+scikit-learn
+torch
+transformers
+umap-learn
